@@ -1,10 +1,10 @@
 # 📊 ML Project Yoobic - Store Sales Prediction
 
-Application web de prédiction des ventes de magasins utilisant Machine Learning et une interface interactive moderne.
+Web application for store sales prediction using Machine Learning with a modern interactive interface.
 
-## 🎯 Objectif
+## 🎯 Objective
 
-Prédire les ventes de magasins en utilisant des modèles LightGBM avec clustering et une interface web interactive Dash.
+Predict store sales using LightGBM models with clustering and an interactive Dash web interface.
 
 ## 🛠️ Technologies
 
@@ -13,74 +13,74 @@ Prédire les ventes de magasins en utilisant des modèles LightGBM avec clusteri
 - **UI**: Dash Mantine Components
 - **Data**: Pandas, NumPy
 
-## 📁 Structure du Projet
+## 📁 Project Structure
 
 ```
 ML_project_yoobic/
-├── app/                    # Application web Dash
-│   ├── callbacks/          # Logique des callbacks
-│   ├── components/         # Composants UI
-│   ├── layouts/            # Layouts de l'interface
-│   └── main.py            # Point d'entrée
-├── data/                   # Données CSV
-├── models/                 # Modèles ML entraînés
-├── notebooks/              # Notebooks Jupyter
-├── utils/                  # Utilitaires (preprocessing, prédictions)
-└── requirements.txt        # Dépendances
+├── app/                    # Dash web application
+│   ├── callbacks/          # Callback logic
+│   ├── components/         # UI components
+│   ├── layouts/            # Interface layouts
+│   └── main.py            # Entry point
+├── data/                   # CSV data
+├── models/                 # Trained ML models
+├── notebooks/              # Jupyter notebooks
+├── utils/                  # Utilities (preprocessing, predictions)
+└── requirements.txt        # Dependencies
 ```
 
 ## 🚀 Installation
 
 ```bash
-# Cloner le dépôt
+# Clone the repository
 git clone https://github.com/bentalha-khadija/ML_project_yoobic.git
 cd ML_project_yoobic
 
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## 🏃 Utilisation
+## 🏃 Usage
 
-### 1. Préparer les modèles
+### 1. Prepare the models
 
-Exécutez le notebook pour entraîner les modèles :
+Run the notebook to train the models:
 ```bash
 jupyter notebook notebooks/data_modeling.ipynb
 ```
 
-### 2. Vérifier les modèles
+### 2. Check the models
 
 ```bash
 python prepare_model.py
 ```
 
-### 3. Lancer l'application
+### 3. Launch the application
 
 ```bash
 python app/main.py
 ```
 
-L'application sera accessible à : **http://127.0.0.1:8050**
+The application will be accessible at: **http://127.0.0.1:8050**
 
-## 📈 Fonctionnalités
+## 📈 Features
 
-- 📤 Upload et visualisation de données CSV
-- 📊 Analyse exploratoire des ventes
-- 🤖 Prédictions ML avec modèles LightGBM
-- 📉 Visualisations interactives avec Plotly
-- 🎨 Interface moderne avec thème clair/sombre
+- 📤 CSV data upload and visualization
+- 📊 Exploratory sales analysis
+- 🤖 ML predictions with LightGBM models
+- 📉 Interactive visualizations with Plotly
+- 🎨 Modern interface with light/dark theme
 
-## 📊 Modèle
+## 📊 Model
 
-- **Approche**: Clustering + LightGBM par cluster
-- **Features**: Date, Store, Variables temporelles
-- **Métriques**: RMSE, MAE
+- **Approach**: Clustering + LightGBM per cluster
+- **Features**: Date, Store, Time variables
+- **Metrics**: RMSE, MAE
 
-## 👤 Auteur
+## 👤 Author
 
 Khadija Bentalha
 
-## 📝 Licence
+## 📝 License
 
-Ce projet est à usage éducatif et professionnel.
+This project is for educational and professional use.
