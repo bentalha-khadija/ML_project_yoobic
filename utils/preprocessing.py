@@ -1,6 +1,6 @@
 """
-Module de preprocessing pour les prédictions
-Applique le même feature engineering que dans les notebooks
+Preprocessing module for predictions
+Applies the same feature engineering as in notebooks
 """
 
 import pandas as pd
@@ -9,113 +9,113 @@ import logging
 import warnings
 warnings.filterwarnings('ignore')
 
-# Configuration du logger
+# Logger configuration
 logger = logging.getLogger(__name__)
 
 
 def validate_csv_structure(df):
     """
-    Validation complète et rigoureuse du CSV uploadé
-    Vérifie: colonnes, types, plages de valeurs, dates, valeurs nulles
+    Complete and rigorous validation of uploaded CSV
+    Checks: columns, types, value ranges, dates, null values
     
     Returns:
         tuple: (is_valid: bool, message: str)
     """
     errors = []
     
-    # 1. Vérification des colonnes requises
+    # 1. Check required columns
     required_cols = ['store', 'date', 'holiday_flag', 'temperature', 
                      'fuel_Price', 'cpi', 'unemployment']
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
-        errors.append(f"Colonnes manquantes: {', '.join(missing_cols)}")
-        return False, " | ".join(errors)  # Arrêt immédiat si colonnes manquantes
+        errors.append(f"Missing columns: {', '.join(missing_cols)}")
+        return False, " | ".join(errors)  # Stop immediately if columns missing
     
-    # 2. Vérification des valeurs nulles
+    # 2. Check null values
     null_cols = df[required_cols].columns[df[required_cols].isnull().any()].tolist()
     if null_cols:
         null_counts = {col: df[col].isnull().sum() for col in null_cols}
-        errors.append(f"Valeurs nulles détectées: {null_counts}")
+        errors.append(f"Null values detected: {null_counts}")
     
-    # 3. Validation de 'store' (numérique et dans [1, 45])
+    # 3. Validate 'store' (numeric and in [1, 45])
     try:
         stores = pd.to_numeric(df['store'], errors='raise')
         invalid_stores = stores[(stores < 1) | (stores > 45) | (stores != stores.astype(int))]
         if len(invalid_stores) > 0:
-            unique_invalid = invalid_stores.unique()[:5]  # Limiter affichage
-            errors.append(f"'store' doit être un entier entre 1 et 45. Exemples invalides: {unique_invalid.tolist()}")
+            unique_invalid = invalid_stores.unique()[:5]  # Limit display
+            errors.append(f"'store' must be an integer between 1 and 45. Invalid examples: {unique_invalid.tolist()}")
     except (ValueError, TypeError):
-        errors.append("'store' doit contenir uniquement des nombres")
+        errors.append("'store' must contain only numbers")
     
-    # 4. Validation de 'holiday_flag' (0 ou 1)
+    # 4. Validate 'holiday_flag' (0 or 1)
     try:
         holiday = pd.to_numeric(df['holiday_flag'], errors='raise')
         if not holiday.isin([0, 1]).all():
             invalid_vals = holiday[~holiday.isin([0, 1])].unique()[:5]
-            errors.append(f"'holiday_flag' doit être 0 ou 1. Valeurs invalides trouvées: {invalid_vals.tolist()}")
+            errors.append(f"'holiday_flag' must be 0 or 1. Invalid values found: {invalid_vals.tolist()}")
     except (ValueError, TypeError):
-        errors.append("'holiday_flag' doit contenir uniquement 0 ou 1")
+        errors.append("'holiday_flag' must contain only 0 or 1")
     
-    # 5. Validation des dates
+    # 5. Validate dates
     try:
         dates = pd.to_datetime(df['date'], dayfirst=True, errors='raise')
-        # Vérifier que les dates ne sont pas absurdes
+        # Check that dates are not absurd
         if (dates.dt.year < 2000).any() or (dates.dt.year > 2050).any():
-            errors.append("Certaines dates sont hors de la plage réaliste (2000-2050)")
+            errors.append("Some dates are out of realistic range (2000-2050)")
     except (ValueError, TypeError):
-        errors.append("Format de date invalide. Utilisez YYYY-MM-DD ou DD/MM/YYYY")
+        errors.append("Invalid date format. Use YYYY-MM-DD or DD/MM/YYYY")
     
-    # 6. Validation des variables numériques (plages réalistes)
+    # 6. Validate numeric variables (realistic ranges)
     if 'temperature' in df.columns:
         try:
             temp = pd.to_numeric(df['temperature'], errors='raise')
             if (temp < -50).any() or (temp > 150).any():
-                errors.append("Température hors plage réaliste (-50°F à 150°F)")
+                errors.append("Temperature out of realistic range (-50°F to 150°F)")
         except (ValueError, TypeError):
-            errors.append("'temperature' doit être numérique")
+            errors.append("'temperature' must be numeric")
     
     if 'fuel_Price' in df.columns:
         try:
             fuel = pd.to_numeric(df['fuel_Price'], errors='raise')
             if (fuel < 0).any() or (fuel > 20).any():
-                errors.append("'fuel_Price' doit être entre 0 et 20 $/gallon")
+                errors.append("'fuel_Price' must be between 0 and 20 $/gallon")
         except (ValueError, TypeError):
-            errors.append("'fuel_Price' doit être numérique")
+            errors.append("'fuel_Price' must be numeric")
     
     if 'cpi' in df.columns:
         try:
             cpi = pd.to_numeric(df['cpi'], errors='raise')
             if (cpi < 100).any() or (cpi > 300).any():
-                errors.append("'cpi' hors plage réaliste (100-300)")
+                errors.append("'cpi' out of realistic range (100-300)")
         except (ValueError, TypeError):
-            errors.append("'cpi' doit être numérique")
+            errors.append("'cpi' must be numeric")
     
     if 'unemployment' in df.columns:
         try:
             unemp = pd.to_numeric(df['unemployment'], errors='raise')
             if (unemp < 0).any() or (unemp > 30).any():
-                errors.append("'unemployment' doit être entre 0% et 30%")
+                errors.append("'unemployment' must be between 0% and 30%")
         except (ValueError, TypeError):
-            errors.append("'unemployment' doit être numérique")
+            errors.append("'unemployment' must be numeric")
     
-    # 7. Retour du résultat
+    # 7. Return result
     if errors:
         return False, " | ".join(errors)
     
-    return True, f"✅ Validation réussie ({len(df)} lignes, {df['store'].nunique()} stores)"
+    return True, f"Validation successful ({len(df)} rows, {df['store'].nunique()} stores)"
 
 
 def check_temporal_continuity(df, max_gap_days=14):
     """
-    Vérifie la continuité temporelle des séries par store
-    Détecte les gaps (trous) dans les dates
+    Check temporal continuity of series by store
+    Detects gaps in dates
     
     Args:
-        df: DataFrame avec colonnes 'store' et 'date'
-        max_gap_days: Nombre maximum de jours acceptable entre deux observations
+        df: DataFrame with columns 'store' and 'date'
+        max_gap_days: Maximum number of days acceptable between two observations
     
     Returns:
-        list: Liste des warnings (vide si tout est OK)
+        list: List of warnings (empty if all OK)
     """
     warnings_list = []
     df_temp = df.copy()
@@ -125,19 +125,19 @@ def check_temporal_continuity(df, max_gap_days=14):
         store_data = df_temp[df_temp['store'] == store].sort_values('date')
         
         if len(store_data) < 2:
-            warnings_list.append(f"Store {store}: seulement {len(store_data)} observation(s)")
+            warnings_list.append(f"Store {store}: only {len(store_data)} observation(s)")
             continue
         
-        # Calculer les différences entre dates consécutives
+        # Calculate differences between consecutive dates
         date_diffs = store_data['date'].diff().dt.days
         
-        # Identifier les gaps > max_gap_days
+        # Identify gaps > max_gap_days
         gaps = date_diffs[date_diffs > max_gap_days]
         
         if len(gaps) > 0:
             max_gap = gaps.max()
             warnings_list.append(
-                f"Store {store}: {len(gaps)} gap(s) détecté(s) (max: {int(max_gap)} jours)"
+                f"Store {store}: {len(gaps)} gap(s) detected (max: {int(max_gap)} days)"
             )
     
     return warnings_list
@@ -145,45 +145,45 @@ def check_temporal_continuity(df, max_gap_days=14):
 
 def create_features(df, historical_stats=None):
     """
-    Applique le feature engineering identique aux notebooks
+    Apply feature engineering identical to notebooks
     
     Args:
-        df: DataFrame avec colonnes [store, date, temperature, fuel_Price, cpi, 
+        df: DataFrame with columns [store, date, temperature, fuel_Price, cpi, 
             unemployment, holiday_flag]
-        historical_stats: Dict optionnel avec statistiques historiques pour imputer les lags
+        historical_stats: Optional dict with historical statistics to impute lags
                          Format: {store_id: {'mean': ..., 'median': ..., 'std': ...}}
     
     Returns:
-        DataFrame avec toutes les features nécessaires pour la prédiction
+        DataFrame with all features needed for prediction
     """
-    logger.info(f"Début feature engineering - {len(df)} lignes, {df['store'].nunique()} stores")
+    logger.info(f"Starting feature engineering - {len(df)} rows, {df['store'].nunique()} stores")
     
     df = df.copy()
     
-    # Convertir date
+    # Convert date
     df['date'] = pd.to_datetime(df['date'], dayfirst=True, errors='coerce')
     df = df.sort_values(['store', 'date']).reset_index(drop=True)
-    logger.info(f"Plage de dates: {df['date'].min()} à {df['date'].max()}")
+    logger.info(f"Date range: {df['date'].min()} to {df['date'].max()}")
     
-    # Features temporelles de base
+    # Basic temporal features
     df['year'] = df['date'].dt.year
     df['month'] = df['date'].dt.month
     df['quarter'] = df['date'].dt.quarter
     df['week'] = df['date'].dt.isocalendar().week
     
-    # Encodage cyclique
+    # Cyclic encoding
     df['week_sin'] = np.sin(2 * np.pi * df['week'] / 52)
     df['week_cos'] = np.cos(2 * np.pi * df['week'] / 52)
     df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
     df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)
     
     # =========================================================================
-    # GESTION DES LAGS - CRITIQUE POUR LES NOUVELLES DONNÉES
+    # LAGS HANDLING - CRITICAL FOR NEW DATA
     # =========================================================================
     
-    # Option 1: Si weekly_sales existe dans le DataFrame (mode test avec données réelles)
+    # Option 1: If weekly_sales exists in DataFrame (test mode with real data)
     if 'weekly_sales' in df.columns:
-        # Lags par store
+        # Lags by store
         for lag in [1, 2, 4, 52]:
             df[f'lag_{lag}'] = df.groupby('store')['weekly_sales'].shift(lag)
         
@@ -197,32 +197,32 @@ def create_features(df, historical_stats=None):
             lambda x: x.rolling(4, min_periods=1).std()
         )
     
-    # Option 2: Pas de weekly_sales (vraies nouvelles données) - IMPUTER
+    # Option 2: No weekly_sales (real new data) - IMPUTE
     else:
-        print("⚠️  Pas d'historique de ventes détecté. Imputation des lags...")
+        print("No sales history detected. Imputing lags...")
         
         if historical_stats is None:
-            # Valeurs par défaut si pas de stats historiques
-            print("⚠️  Utilisation de valeurs médianes globales pour les lags")
-            # Ces valeurs doivent être calculées depuis le dataset d'entraînement
-            default_mean = 15981.26  # Moyenne globale du train set
-            default_std = 22711.18   # Écart-type global du train set
+            # Default values if no historical stats
+            print("Using global median values for lags")
+            # These values should be calculated from training dataset
+            default_mean = 15981.26  # Global mean from train set
+            default_std = 22711.18   # Global std from train set
             
-            # Imputer tous les lags avec la moyenne
+            # Impute all lags with mean
             for lag in [1, 2, 4, 52]:
                 df[f'lag_{lag}'] = default_mean
             
             df['sales_lag1'] = default_mean
             
-            # Rolling features avec valeurs par défaut
+            # Rolling features with default values
             for window in [4, 12, 26]:
                 df[f'rolling_mean_{window}'] = default_mean
             
             df['rolling_std_4'] = default_std
         
         else:
-            # Imputer avec statistiques spécifiques par store
-            print(f"✓ Imputation avec statistiques pour {len(historical_stats)} stores")
+            # Impute with store-specific statistics
+            print(f"Imputation with statistics for {len(historical_stats)} stores")
             
             for lag in [1, 2, 4, 52]:
                 df[f'lag_{lag}'] = df['store'].map(
@@ -242,25 +242,25 @@ def create_features(df, historical_stats=None):
                 lambda s: historical_stats.get(s, {}).get('std', 22711.18)
             )
     
-    # Supprimer les NaN restants (si mode test avec weekly_sales)
+    # Remove remaining NaN (if test mode with weekly_sales)
     initial_len = len(df)
     df = df.dropna().reset_index(drop=True)
     dropped = initial_len - len(df)
     
     if dropped > 0:
-        logger.warning(f"{dropped} lignes supprimées (NaN dans les lags)")
-        print(f"ℹ️  {dropped} lignes supprimées (NaN dans les lags)")
+        logger.warning(f"{dropped} rows removed (NaN in lags)")
+        print(f"{dropped} rows removed (NaN in lags)")
     
-    logger.info(f"Feature engineering terminé - Shape finale: {df.shape}")
-    logger.info(f"Features créées: {len(get_feature_columns())} colonnes")
+    logger.info(f"Feature engineering completed - Final shape: {df.shape}")
+    logger.info(f"Features created: {len(get_feature_columns())} columns")
     
     return df
 
 
 def get_feature_columns():
     """
-    Retourne la liste exacte des colonnes de features dans l'ordre
-    pour la prédiction avec LightGBM
+    Return exact list of feature columns in order
+    for prediction with LightGBM
     """
     return [
         'store', 'temperature', 'fuel_Price', 'cpi', 'unemployment', 'holiday_flag',
@@ -273,8 +273,8 @@ def get_feature_columns():
 
 def load_historical_stats(train_data_path='data/train.pkl'):
     """
-    Charge les statistiques historiques depuis le dataset d'entraînement
-    pour imputer les lags des nouvelles données
+    Load historical statistics from training dataset
+    to impute lags for new data
     
     Returns:
         dict: {store_id: {'mean': ..., 'median': ..., 'std': ...}}
@@ -282,7 +282,7 @@ def load_historical_stats(train_data_path='data/train.pkl'):
     try:
         import os
         if not os.path.exists(train_data_path):
-            print(f"⚠️  Fichier {train_data_path} introuvable. Utilisation de valeurs par défaut.")
+            print(f"File {train_data_path} not found. Using default values.")
             return None
         
         train = pd.read_pickle(train_data_path)
@@ -296,9 +296,9 @@ def load_historical_stats(train_data_path='data/train.pkl'):
                 'std': store_data.std()
             }
         
-        print(f"✓ Statistiques historiques chargées pour {len(stats)} stores")
+        print(f"Historical statistics loaded for {len(stats)} stores")
         return stats
     
     except Exception as e:
-        print(f"⚠️  Erreur lors du chargement des stats historiques: {e}")
+        print(f"Error loading historical stats: {e}")
         return None

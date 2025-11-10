@@ -13,7 +13,7 @@ def create_charts_section():
     
     return html.Div(
         id='viz-section',
-        style={'display': 'none'},
+        style={'display': 'block'},
         children=[
             dmc.Paper(
                 p="xl",

@@ -1,0 +1,30 @@
+{
+  "approach": "Clustering",
+  "model_type": "LightGBM",
+  "rmse": 63519.94,
+  "mae": 42650.0,
+  "mape": 4.24,
+  "description": "One LightGBM model per store cluster (k=4)",
+  "features": [
+    "Lags: 1, 2, 4, 52 weeks",
+    "Rolling features: means and std",
+    "Cyclical encoding: week, month",
+    "Exogenous variables: temperature, fuel price, CPI, unemployment"
+  ],
+  "training_info": {
+    "n_clusters": 4,
+    "algorithm": "LightGBM",
+    "clustering_method": "KMeans",
+    "n_features": 24,
+    "stores_range": "1-45"
+  },
+  "performance": {
+    "rmse": 63519.94,
+    "mae": 42650.0,
+    "mape": 4.24,
+    "r2_score": null
+  },
+  "version": "1.0.0",
+  "created_date": "2024-11-10",
+  "last_updated": "2024-11-10"
+}

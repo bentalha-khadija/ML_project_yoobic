@@ -1,20 +1,21 @@
 """
-Module pour charger le modèle optimal et les modèles par cluster
+Module to load optimal model and cluster models
 """
 
 import joblib
 import os
+import json
 
 
 def load_optimal_model(model_path='models/best_sales_model.pkl'):
     """
-    Charge le modèle optimal sauvegardé
+    Load saved optimal model
     
     Returns:
-        dict: Contient le modèle et ses métadonnées
+        dict: Contains model and its metadata
               {
-                  'approche': 'Clustering',
-                  'modele': 'LightGBM', 
+                  'approach': 'Clustering',
+                  'model': 'LightGBM', 
                   'rmse': 63519.94,
                   'mae': 42650.00,
                   'mape': 4.24,
@@ -24,12 +25,12 @@ def load_optimal_model(model_path='models/best_sales_model.pkl'):
     """
     if not os.path.exists(model_path):
         raise FileNotFoundError(
-            f"Modèle introuvable à {model_path}. "
-            "Exécutez d'abord le notebook 06_Comparison_Final.ipynb pour générer le modèle."
+            f"Model not found at {model_path}. "
+            "Run notebook 06_Comparison_Final.ipynb first to generate the model."
         )
     
     model_info = joblib.load(model_path)
-    print(f"✓ Modèle optimal chargé: {model_info['approche']} + {model_info['modele']}")
+    print(f"Optimal model loaded: {model_info['approach']} + {model_info['model']}")
     print(f"  RMSE: {model_info['rmse']:.2f}")
     
     return model_info
@@ -37,14 +38,14 @@ def load_optimal_model(model_path='models/best_sales_model.pkl'):
 
 def load_cluster_models(models_dir='models'):
     """
-    Charge tous les modèles LightGBM par cluster
+    Load all LightGBM models by cluster
     
     Returns:
         dict: {cluster_id: model}
     """
     cluster_models = {}
     
-    # Chercher les fichiers lgb_cluster_*.pkl
+    # Look for lgb_cluster_*.pkl files
     for filename in os.listdir(models_dir):
         if filename.startswith('lgb_cluster_') and filename.endswith('.pkl'):
             cluster_id = int(filename.replace('lgb_cluster_', '').replace('.pkl', ''))
@@ -53,29 +54,62 @@ def load_cluster_models(models_dir='models'):
     
     if not cluster_models:
         raise FileNotFoundError(
-            f"Aucun modèle de cluster trouvé dans {models_dir}. "
-            "Exécutez d'abord le notebook 03_Modeling_Clustering.ipynb."
+            f"No cluster models found in {models_dir}. "
+            "Run notebook 03_Modeling_Clustering.ipynb first."
         )
     
-    print(f"✓ {len(cluster_models)} modèles de cluster chargés")
+    print(f"{len(cluster_models)} cluster models loaded")
     return cluster_models
 
 
-def get_model_metadata():
+def get_model_metadata(metadata_path='models/model_metadata.json'):
     """
-    Retourne les métadonnées du modèle optimal pour affichage
+    Load and return model metadata from JSON file
+    
+    Args:
+        metadata_path: Path to metadata JSON file
+        
+    Returns:
+        dict: Model metadata
     """
-    return {
-        'approach': 'Clustering',
-        'model_type': 'LightGBM',
-        'rmse': 63519.94,
-        'mae': 42650.00,
-        'mape': 4.24,
-        'description': 'Un modèle LightGBM par cluster de magasins (k=4)',
-        'features': [
-            'Lags: 1, 2, 4, 52 semaines',
-            'Rolling features: moyennes et std',
-            'Encodage cyclique: semaine, mois',
-            'Variables exogènes: température, carburant, CPI, chômage'
-        ]
-    }
+    try:
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
+            print(f"Metadata loaded from {metadata_path}")
+            return metadata
+        else:
+            print(f"File {metadata_path} not found. Using default metadata.")
+            # Default metadata if JSON file doesn't exist
+            return {
+                'approach': 'Clustering',
+                'model_type': 'LightGBM',
+                'rmse': 63519.94,
+                'mae': 42650.00,
+                'mape': 4.24,
+                'description': 'One LightGBM model per store cluster (k=4)',
+                'features': [
+                    'Lags: 1, 2, 4, 52 weeks',
+                    'Rolling features: means and std',
+                    'Cyclic encoding: week, month',
+                    'Exogenous variables: temperature, fuel, CPI, unemployment'
+                ]
+            }
+    except Exception as e:
+        print(f"Error loading metadata: {e}")
+        print("   Using default metadata.")
+        # Return default metadata in case of error
+        return {
+            'approach': 'Clustering',
+            'model_type': 'LightGBM',
+            'rmse': 63519.94,
+            'mae': 42650.00,
+            'mape': 4.24,
+            'description': 'One LightGBM model per store cluster (k=4)',
+            'features': [
+                'Lags: 1, 2, 4, 52 weeks',
+                'Rolling features: means and std',
+                'Cyclic encoding: week, month',
+                'Exogenous variables: temperature, fuel, CPI, unemployment'
+            ]
+        }

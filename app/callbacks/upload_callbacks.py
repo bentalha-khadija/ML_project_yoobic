@@ -20,15 +20,8 @@ def register_upload_callbacks(app):
     @app.callback(
         [Output('upload-status', 'children'),
          Output('predictions-store', 'data'),
-         Output('predictions-table', 'data'),
-         Output('predictions-table', 'columns'),
-         Output('table-section', 'style'),
-         Output('viz-section', 'style'),
-         Output('stats-section', 'style'),
-         Output('viz-store-selector', 'data'),
-         Output('viz-store-selector', 'disabled'),
-         Output('download-button', 'disabled'),
-         Output('summary-stats', 'children')],
+         Output('summary-stats', 'children'),
+         Output('stats-section', 'style')],
         Input('upload-data', 'contents'),
         State('upload-data', 'filename'),
         prevent_initial_call=True,
@@ -37,11 +30,7 @@ def register_upload_callbacks(app):
         """Process uploaded file and generate predictions"""
         
         if contents is None:
-            return [
-                None, None, [], [], 
-                {'display': 'none'}, {'display': 'none'}, {'display': 'none'},
-                [], True, True, None
-            ]
+            return [None, None, None, {'display': 'none'}]
         
         try:
             # Decode the file
@@ -59,9 +48,9 @@ def register_upload_callbacks(app):
                         icon=DashIconify(icon="ph:warning"),
                         children=message,
                     ),
-                    None, [], [],
-                    {'display': 'none'}, {'display': 'none'}, {'display': 'none'},
-                    [], True, True, None
+                    None,
+                    None,
+                    {'display': 'none'}
                 ]
             
             # Check temporal continuity (warnings only, doesn't block)
@@ -74,50 +63,81 @@ def register_upload_callbacks(app):
             # Generate predictions
             df_predictions = predict_sales(df)
             
-            # Format for display
-            df_display = df_predictions.copy()
-            df_display['date'] = pd.to_datetime(df_display['date']).dt.strftime('%Y-%m-%d')
-            df_display['predicted_sales'] = df_display['predicted_sales'].round(2)
-            
-            # Table columns
-            columns = [
-                {'name': 'Store', 'id': 'store'},
-                {'name': 'Date', 'id': 'date'},
-                {'name': 'Predicted Sales', 'id': 'predicted_sales'},
-                {'name': 'Cluster', 'id': 'cluster'}
-            ]
-            
-            # Store selector options
-            store_options = [
-                {'label': f'Store {s}', 'value': str(s)} 
-                for s in sorted(df_predictions['store'].unique())
-            ]
-            
             # Calculate statistics
-            stats = get_summary_stats(df_predictions)
-            stats_content = dmc.SimpleGrid(
-                cols={"base": 1, "sm": 2, "md": 4},
-                spacing="lg",
+            # Calculate additional statistics
+            n_stores = df_predictions['store'].nunique()
+            n_days = df_predictions['date'].nunique()
+            date_range = f"{df_predictions['date'].min()} to {df_predictions['date'].max()}"
+            total_sales = df_predictions['predicted_sales'].sum()
+            summary_stats = get_summary_stats(df_predictions)
+            
+            # Create summary stats with more information
+            stats_content = dmc.Stack(
+                gap="lg",
                 children=[
-                    create_stat_card(
-                        "Total Predictions",
-                        f"{stats['total_predictions']:,}",
-                        "ph:chart-line-up"
+                    # Row 1: Overview metrics
+                    dmc.SimpleGrid(
+                        cols={"base": 1, "sm": 2, "md": 4},
+                        spacing="lg",
+                        children=[
+                            create_stat_card(
+                                "Total Stores",
+                                f"{n_stores}",
+                                "ph:storefront"
+                            ),
+                            create_stat_card(
+                                "Time Period",
+                                f"{n_days} days",
+                                "ph:calendar"
+                            ),
+                            create_stat_card(
+                                "Total Predictions",
+                                f"{len(df_predictions):,}",
+                                "ph:chart-line-up"
+                            ),
+                            create_stat_card(
+                                "Total Sales",
+                                f"${total_sales:,.0f}",
+                                "ph:currency-dollar"
+                            ),
+                        ],
                     ),
-                    create_stat_card(
-                        "Mean Sales",
-                        f"${stats['mean_sales']:,.2f}",
-                        "ph:currency-dollar"
+                    
+                    # Row 2: Sales statistics
+                    dmc.SimpleGrid(
+                        cols={"base": 1, "sm": 2, "md": 4},
+                        spacing="lg",
+                        children=[
+                            create_stat_card(
+                                "Average Sales",
+                                f"${summary_stats['mean_sales']:,.2f}",
+                                "ph:coin"
+                            ),
+                            create_stat_card(
+                                "Max Sales",
+                                f"${summary_stats['max_sales']:,.2f}",
+                                "ph:trend-up"
+                            ),
+                            create_stat_card(
+                                "Min Sales",
+                                f"${summary_stats['min_sales']:,.2f}",
+                                "ph:trend-down"
+                            ),
+                            create_stat_card(
+                                "Std Deviation",
+                                f"${summary_stats['std_sales']:,.2f}",
+                                "ph:chart-scatter"
+                            ),
+                        ],
                     ),
-                    create_stat_card(
-                        "Total Sales",
-                        f"${stats['total_sales']:,.2f}",
-                        "ph:coins"
-                    ),
-                    create_stat_card(
-                        "Unique Stores",
-                        f"{stats['unique_stores']}",
-                        "ph:storefront"
+                    
+                    # Date range info
+                    dmc.Alert(
+                        icon=DashIconify(icon="ph:calendar-check"),
+                        title="Prediction Period",
+                        color="blue",
+                        variant="light",
+                        children=date_range,
                     ),
                 ],
             )
@@ -129,16 +149,9 @@ def register_upload_callbacks(app):
                     icon=DashIconify(icon="ph:check-circle"),
                     children=f"File '{filename}' processed successfully! Generated {len(df_predictions):,} predictions.",
                 ),
-                df_predictions.to_dict('records'),
-                df_display.to_dict('records'),
-                columns,
-                {'display': 'block'},
-                {'display': 'block'},
-                {'display': 'block'},
-                store_options,
-                False,
-                False,
-                stats_content,
+                df_predictions.to_dict('records'),  # Store the data
+                stats_content,  # Display stats on Home page
+                {'display': 'block'}  # Show stats section
             ]
             
         except Exception as e:
@@ -149,9 +162,9 @@ def register_upload_callbacks(app):
                     icon=DashIconify(icon="ph:x-circle"),
                     children=f"Error processing file: {str(e)}",
                 ),
-                None, [], [],
-                {'display': 'none'}, {'display': 'none'}, {'display': 'none'},
-                [], True, True, None
+                None,
+                None,
+                {'display': 'none'}
             ]
     
     
