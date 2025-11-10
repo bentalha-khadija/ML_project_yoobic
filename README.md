@@ -63,10 +63,10 @@ Open your browser at **http://127.0.0.1:8050**
 
 ## How to Use
 
-1. **Upload Data** → Go to the home page and upload your CSV file
-2. **View Predictions** → Check the "Data Table" page for results
-3. **Explore Charts** → Head to "Visualizations" to see trends
-4. **Download** → Export predictions as CSV when you're done
+1. **Upload Data** : Go to the home page and upload your CSV file
+2. **View Predictions** : Check the "Data Table" page for results
+3. **Explore Charts** : Head to "Visualizations" to see trends
+4. **Download** : Export predictions as CSV when you're done
 
 ---
 
