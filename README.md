@@ -2,6 +2,8 @@
 
 A web app that predicts weekly sales for retail stores using machine learning. Upload your data, get predictions, and visualize results.
 
+Please see the Demo folder, it contains a video demonstrating the app.
+
 ---
 
 ## What Does It Do?
