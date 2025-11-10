@@ -4,9 +4,8 @@ Script to verify that all necessary models are present for the web application
 
 import os
 
-print("="*80)
+
 print("MODEL VERIFICATION FOR WEB APPLICATION")
-print("="*80)
 
 # Check required files
 required_files = {
@@ -33,7 +32,7 @@ if missing:
     print("   Run the notebook notebooks/data_modeling.ipynb to generate these files.")
     exit(1)
 else:
-    print("\n[SUCCESS] All required files are present!")
+    print("\n All required files are present!")
 
 print("\n" + "="*80)
 print("VERIFICATION COMPLETED")
