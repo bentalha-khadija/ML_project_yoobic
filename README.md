@@ -106,7 +106,7 @@ ML_project_yoobic/
 The code is commented, the logs are detailed, and the UI is intuitive. If you're stuck:
 1. Check the logs in `logs/`
 2. Look at the notebooks in `notebooks/` for modeling details
-3. Read the code comments (they're actually helpful!)
+3. Read the code comments
 
 
 ```bash
